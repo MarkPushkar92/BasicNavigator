@@ -11,6 +11,9 @@ import MapKit
 
 class ViewController: UIViewController {
     
+    
+    // MARK: Properties
+    
     let mapView: MKMapView = {
         let map = MKMapView()
         map.translatesAutoresizingMaskIntoConstraints = false
@@ -55,7 +58,11 @@ class ViewController: UIViewController {
     
     var annotationsArray = [MKPointAnnotation]()
     
+    
+    //MARK: button methods
+    
     @objc func addAdressButtonTaped() {
+        
         print("tapADD")
         alertAddAdress(title: "Укажите адресс", placeHolder: "Введите Адресс") { [self] text in
             setupLandMark(adressPlace: text)
@@ -64,14 +71,29 @@ class ViewController: UIViewController {
     }
 
     @objc func removePinsButtonTaped() {
+        mapView.removeOverlays(mapView.overlays)
+        mapView.removeAnnotations(mapView.annotations)
+        annotationsArray = [MKPointAnnotation]()
+        makeRouteButton.isHidden = true
+        removeButton.isHidden = true
         print("remove")
     }
     
     @objc func makeRouteButtonTaped() {
+        
+        for index in 0...annotationsArray.count - 2 {
+            
+            createDirectionRequest(startCordinate: annotationsArray[index].coordinate, destinationCordinate: annotationsArray[index + 1].coordinate)
+        }
+        
+        mapView.showAnnotations(annotationsArray, animated: true)
         print("route")
     }
     
+    //MARK: Private Funcs
+    
     private func setupLandMark(adressPlace: String) {
+        
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(adressPlace) { [self] (placemarks, error) in
             
@@ -109,7 +131,7 @@ class ViewController: UIViewController {
         let request = MKDirections.Request()
         request.source = MKMapItem(placemark: startLocation)
         request.destination = MKMapItem(placemark: destinationLocation)
-        request.transportType = .automobile
+        request.transportType = .walking
         request.requestsAlternateRoutes = true
         
         let direction = MKDirections(request: request)
@@ -135,6 +157,8 @@ class ViewController: UIViewController {
         
     }
     
+    //MARK: viewDidLoad
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setLayout()
@@ -142,6 +166,8 @@ class ViewController: UIViewController {
     }
 
 }
+
+//MARK: extensions
 
 extension ViewController {
     
@@ -177,7 +203,10 @@ extension ViewController {
 extension ViewController: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-        <#code#>
+        
+        let render = MKPolylineRenderer(overlay: overlay as! MKPolyline)
+        render.strokeColor = .red
+        return render
     }
     
 }
